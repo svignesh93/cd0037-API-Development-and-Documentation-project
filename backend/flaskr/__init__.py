@@ -1,11 +1,7 @@
-import os
-import random
 from flask_cors import CORS
-from flask_sqlalchemy import SQLAlchemy
 
 from flask import (
     Flask,
-    render_template,
     request,
     abort,
     jsonify
@@ -55,15 +51,46 @@ def create_app(test_config=None):
         if len(questions) == 0:
             abort(404)
 
-        return jsonify(
-            {
-                "success": True,
-                "questions": [question.format() for question in questions],
-                "total_questions": len(totalQuestions),
-                "categories": {category.id : category.type for category in categories},
-                "current_category": None
-            }
-        )
+        return jsonify({
+            "success": True,
+            "questions": [question.format() for question in questions],
+            "total_questions": len(totalQuestions),
+            "categories": {category.id : category.type for category in categories},
+            "current_category": None
+        })
+
+    @app.route("/questions", methods=["POST"])
+    def createQuestion():
+        body = request.get_json()
+
+        question = body.get("question", None)
+        answer = body.get("answer", None)
+        category = body.get("category", None)
+        difficulty = body.get("difficulty", None)
+
+        question = Question(question, answer, category, difficulty)
+        questionId = question.id
+        status = question.insert()
+
+        if status:
+            return jsonify({
+                "success": status,
+                "created": questionId
+            })
+        else:
+            abort(422)
+
+    @app.route("/questions/<int:id>", methods=["DELETE"])
+    def deleteQuestion(id):
+        question = Question.query.get_or_404(id)
+        status = question.delete()
+        if status:
+            return jsonify({
+                "success": status,
+                "deleted": id
+            })
+        else:
+            abort(422)
 
     @app.errorhandler(404)
     def notFound(error):
@@ -72,24 +99,12 @@ def create_app(test_config=None):
             404,
         )
 
-    """
-    @TODO:
-    Create an endpoint to DELETE question using a question ID.
-
-    TEST: When you click the trash icon next to a question, the question will be removed.
-    This removal will persist in the database and when you refresh the page.
-    """
-
-    """
-    @TODO:
-    Create an endpoint to POST a new question,
-    which will require the question and answer text,
-    category, and difficulty score.
-
-    TEST: When you submit a question on the "Add" tab,
-    the form will clear and the question will appear at the end of the last page
-    of the questions list in the "List" tab.
-    """
+    @app.errorhandler(422)
+    def unprocessable(error):
+        return (
+            jsonify({"success": False, "error": 422, "message": "unprocessable"}),
+            422,
+        )
 
     """
     @TODO:

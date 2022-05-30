@@ -1,7 +1,11 @@
-import os
-from sqlalchemy import Column, String, Integer, create_engine
+import sys
 from flask_sqlalchemy import SQLAlchemy
-import json
+
+from sqlalchemy import (
+    Column,
+    String,
+    Integer
+)
 
 database_name = 'trivia'
 database_path = 'postgresql://{}@{}/{}'.format('postgres','localhost:5432', database_name)
@@ -39,15 +43,33 @@ class Question(db.Model):
         self.difficulty = difficulty
 
     def insert(self):
-        db.session.add(self)
-        db.session.commit()
+        status = True
+        try:
+            db.session.add(self)
+            db.session.commit()
+        except:
+            db.session.rollback()
+            status = False
+            print(sys.exc_info())
+        finally:
+            db.session.close()
+        return status
 
     def update(self):
         db.session.commit()
 
     def delete(self):
-        db.session.delete(self)
-        db.session.commit()
+        status = True
+        try:
+            db.session.delete(self)
+            db.session.commit()
+        except:
+            db.session.rollback()
+            status = False
+            print(sys.exc_info())
+        finally:
+            db.session.close()
+        return status
 
     def format(self):
         return {
