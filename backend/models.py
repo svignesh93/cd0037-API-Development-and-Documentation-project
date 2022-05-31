@@ -56,7 +56,17 @@ class Question(db.Model):
         return status
 
     def update(self):
-        db.session.commit()
+        status = True
+        try:
+            db.session.add(self)
+            db.session.commit()
+        except:
+            db.session.rollback()
+            status = False
+            print(sys.exc_info())
+        finally:
+            db.session.close()
+        return status
 
     def delete(self):
         status = True
@@ -78,7 +88,7 @@ class Question(db.Model):
             'answer': self.answer,
             'category': self.category,
             'difficulty': self.difficulty
-            }
+        }
 
 """
 Category
@@ -97,4 +107,4 @@ class Category(db.Model):
         return {
             'id': self.id,
             'type': self.type
-            }
+        }
