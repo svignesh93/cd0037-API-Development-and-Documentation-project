@@ -31,8 +31,7 @@ def create_app(test_config=None):
 
     @app.route("/categories", methods=["GET"])
     def categories():
-        totalCategories = Category.query.order_by(Category.id).all()
-        categories = paginate(request, totalCategories)
+        categories = Category.query.order_by(Category.id).all()
 
         if len(categories) == 0:
             abort(404)
@@ -40,7 +39,7 @@ def create_app(test_config=None):
         return jsonify({
             "success": True,
             "categories": {category.id : category.type for category in categories},
-            "total_categories": len(totalCategories)
+            "total_categories": len(categories)
         })
 
     @app.route("/categories/<int:id>/questions", methods=["GET"])
@@ -91,13 +90,12 @@ def create_app(test_config=None):
             abort(400)
 
         question = Question(question, answer, category, difficulty)
-        questionId = question.id
-        status = question.insert()
+        result = question.insert()
 
-        if status:
+        if result["status"]:
             return jsonify({
-                "success": status,
-                "created": questionId
+                "success": result["status"],
+                "created": result["id"]
             })
         else:
             abort(422)
@@ -195,6 +193,13 @@ def create_app(test_config=None):
         return (
             jsonify({"success": False, "error": 404, "message": "resource not found"}),
             404
+        )
+
+    @app.errorhandler(405)
+    def notFound(error):
+        return (
+            jsonify({"success": False, "error": 405, "message": "method not allowed"}),
+            405
         )
 
     return app

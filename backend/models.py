@@ -8,7 +8,11 @@ from sqlalchemy import (
 )
 
 database_name = 'trivia'
-database_path = 'postgresql://{}@{}/{}'.format('postgres','localhost:5432', database_name)
+database_path = 'postgresql://{}@{}/{}'.format(
+    'postgres',
+    'localhost:5432',
+    database_name
+)
 
 db = SQLAlchemy()
 
@@ -33,7 +37,7 @@ class Question(db.Model):
     id = Column(Integer, primary_key=True)
     question = Column(String)
     answer = Column(String)
-    category = Column(String)
+    category = Column(Integer)
     difficulty = Column(Integer)
 
     def __init__(self, question, answer, category, difficulty):
@@ -44,16 +48,18 @@ class Question(db.Model):
 
     def insert(self):
         status = True
+        id = None
         try:
             db.session.add(self)
             db.session.commit()
+            id = self.id
         except:
             db.session.rollback()
             status = False
             print(sys.exc_info())
         finally:
             db.session.close()
-        return status
+        return {"status": status, "id": id}
 
     def update(self):
         status = True
