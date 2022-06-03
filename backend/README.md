@@ -67,28 +67,213 @@ One note before you delve into your tasks: for each endpoint, you are expected t
 8. Create a `POST` endpoint to get questions to play the quiz. This endpoint should take a category and previous question parameters and return a random questions within the given category, if provided, and that is not one of the previous questions.
 9. Create error handlers for all expected errors including 400, 404, 422, and 500.
 
-## Documenting your Endpoints
+## API Reference
 
-You will need to provide detailed documentation of your API endpoints including the URL, request parameters, and the response body. Use the example below as a reference.
+### Getting Started
 
-### Documentation Example
+- Base URL: At present this app can only be run locally and is not hosted as a base URL. The backend app is hosted at the default, `http://127.0.0.1:5000/`, which is set as a proxy in the frontend configuration.
+- Authentication: This version of the application does not require authentication or API keys.
 
-`GET '/api/v1.0/categories'`
+### Endpoints
+
+`GET '/categories'`
 
 - Fetches a dictionary of categories in which the keys are the ids and the value is the corresponding string of the category
 - Request Arguments: None
-- Returns: An object with a single key, `categories`, that contains an object of `id: category_string` key: value pairs.
+- Returns: An object with a single key, categories, that contains an object of {id: category_string} {key: value} pairs.
+- Sample: `curl http://127.0.0.1:5000/categories`
 
 ```json
 {
-  "1": "Science",
-  "2": "Art",
-  "3": "Geography",
-  "4": "History",
-  "5": "Entertainment",
-  "6": "Sports"
+  "categories": {
+    "1": "Science",
+    "2": "Art",
+    "3": "Geography",
+    "4": "History",
+    "5": "Entertainment",
+    "6": "Sports"
+  },
+  "success": true,
+  "total_categories": 6
 }
 ```
+
+`GET '/categories/${id}/questions'`
+
+- Fetches questions for a cateogry specified by id request argument
+- Request Arguments: `id` - integer
+- Returns: An object with questions for the specified category, total questions, and current category string
+- Sample: `curl http://127.0.0.1:5000/categories/1/questions`
+
+```json
+{
+  "current_category": "Science",
+  "questions": [
+    {
+      "answer": "The Liver",
+      "category": 1,
+      "difficulty": 4,
+      "id": 20,
+      "question": "What is the heaviest organ in the human body?"
+    }
+  ],
+  "success": true,
+  "total_questions": 1
+}
+```
+
+`GET '/questions?page=${integer}'`
+
+- Fetches a paginated set of questions, a total number of questions, all categories and current category string.
+- Request Arguments: `page` - integer
+- Returns: An object with 10 paginated questions, total questions, object including all categories, and current category string
+- Sample: `curl http://127.0.0.1:5000/questions?page=1`
+
+```json
+{
+  "categories": {
+    "1": "Science",
+    "2": "Art",
+    "3": "Geography",
+    "4": "History",
+    "5": "Entertainment",
+    "6": "Sports"
+  },
+  "current_category": "Science",
+  "questions": [
+    {
+      "answer": "Apollo 13",
+      "category": 5,
+      "difficulty": 4,
+      "id": 2,
+      "question": "What movie earned Tom Hanks his third straight Oscar nomination, in 1996?"
+    }
+  ],
+  "success": true,
+  "total_questions": 1
+}
+```
+
+`POST '/questions'`
+
+- Sends a post request in order to create a new question
+- Sample: `curl http://127.0.0.1:5000/questions -X POST -H "Content-Type: application/json" -d '{"question": "What movie earned Tom Hanks his third straight Oscar nomination, in 1996?", "answer": "Apollo 13", "category": 5, "difficulty": 4}'`
+
+- Request Body:
+
+```json
+{
+  "question": "What movie earned Tom Hanks his third straight Oscar nomination, in 1996?",
+  "answer": "Apollo 13",
+  "category": 5,
+  "difficulty": 4
+}
+```
+
+- Returns: a single new question object
+
+```json
+{
+  "success": true,
+  "created": 2,
+}
+```
+
+`POST '/questions/search'`
+
+- Sends a post request in order to get the get questions based on a search term which is a substring of the question
+- Sample: `curl http://127.0.0.1:5000/questions/search -X POST -H "Content-Type: application/json" -d '{"searchTerm": "human"}'`
+
+- Request Body:
+
+```json
+{
+  "searchTerm": "human"
+}
+```
+
+- Returns: all matching list of questions
+
+```json
+{
+  "current_category": "Science",
+  "questions": [
+    {
+      "answer": "The Liver",
+      "category": 1,
+      "difficulty": 4,
+      "id": 20,
+      "question": "What is the heaviest organ in the human body?"
+    }
+  ],
+  "success": true,
+  "total_questions": 1
+}
+```
+
+`DELETE '/questions/${id}'`
+
+- Deletes a specified question using the id of the question
+- Request Arguments: `id` - integer
+- Returns: the appropriate HTTP status code and the id of the question
+- Sample: `curl -X DELETE http://127.0.0.1:5000/questions/5`
+
+```json
+{
+  "success": true,
+  "deleted": 5,
+}
+```
+
+`POST '/quizzes'`
+
+- Sends a post request in order to get the next question
+- Sample: `curl http://127.0.0.1:5000/quizzes -X POST -H "Content-Type: application/json" -d '{"previous_questions": [1, 4, 20, 15], "quiz_category": {"id": 1, "type": "Science"}}'`
+
+- Request Body:
+
+```json
+{
+  "previous_questions": [1, 4, 20, 15],
+  "quiz_category": {"id": 1, "type": "Science"}
+}
+```
+
+- Returns: a single new question object
+
+```json
+{
+  "success": true,
+  "questions": [
+    {
+      "answer": "The Liver",
+      "category": 1,
+      "difficulty": 4,
+      "id": 20,
+      "question": "What is the heaviest organ in the human body?"
+    }
+  ]
+}
+```
+
+### Error Handling
+
+Errors are returned as JSON objects in the following format:
+
+```json
+{
+  "success": false,
+  "error": 400,
+  "message": "bad request"
+}
+```
+
+The API will return three error types when requests fail:
+- 400: Bad Request
+- 404: Resource Not Found
+- 405: Method Not Allowed
+- 422: Not Processable
+- 500: Internal Server Error
 
 ## Testing
 
