@@ -175,7 +175,7 @@ def create_app(test_config=None):
         })
 
     @app.errorhandler(400)
-    def bad_request(error):
+    def badRequest(error):
         return (
             jsonify({"success": False, "error": 400, "message": "bad request"}),
             400
@@ -189,17 +189,24 @@ def create_app(test_config=None):
         )
 
     @app.errorhandler(404)
-    def notFound(error):
+    def resourceNotFound(error):
         return (
             jsonify({"success": False, "error": 404, "message": "resource not found"}),
             404
         )
 
     @app.errorhandler(405)
-    def notFound(error):
+    def methodNotAllowed(error):
         return (
             jsonify({"success": False, "error": 405, "message": "method not allowed"}),
             405
+        )
+
+    @app.errorhandler(500)
+    def internalServerError(error):
+        return (
+            jsonify({"success": False, "error": 500, "message": "internal server error"}),
+            500
         )
 
     return app
