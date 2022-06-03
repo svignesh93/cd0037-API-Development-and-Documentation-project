@@ -1,3 +1,4 @@
+import os
 import sys
 from flask_sqlalchemy import SQLAlchemy
 
@@ -9,7 +10,7 @@ from sqlalchemy import (
 
 database_name = 'trivia'
 database_path = 'postgresql://{}@{}/{}'.format(
-    'postgres',
+    os.getenv('DATABASE_USERNAME'),
     'localhost:5432',
     database_name
 )

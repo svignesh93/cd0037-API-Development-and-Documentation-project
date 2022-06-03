@@ -1,3 +1,4 @@
+import os
 import random
 import unittest
 from flask_sqlalchemy import SQLAlchemy
@@ -22,7 +23,7 @@ class TriviaTestCase(unittest.TestCase):
         self.client = self.app.test_client
         self.database_name = "trivia_test"
         self.database_path = "postgresql://{}@{}/{}".format(
-            'postgres',
+            os.getenv('DATABASE_USERNAME'),
             'localhost:5432',
             self.database_name
         )
